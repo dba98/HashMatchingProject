@@ -1,14 +1,17 @@
 package ProjetoSD.hashmatchproj.client;
 
 
+import ProjetoSD.hashmatchproj.models.User;
 import ProjetoSD.hashmatchproj.server.HashMatchFactoryRI;
 import ProjetoSD.hashmatchproj.server.HashMatchSessionRI;
 import ProjetoSD.hashmatchproj.util.rmisetup.SetupContextRMI;
 
+import java.io.File;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +24,7 @@ public class HashMatchMainClient {
      * Remote interface that will hold the Servant proxy
      */
     private HashMatchFactoryRI hashMatchFactoryRI;
-
+    User user;
     public static void main(String[] args) {
         if (args != null && args.length < 2) {
             System.err.println("usage: java [options] edu.ufp.sd.inf.rmi.edu.ufp.inf.sd.rmi.helloworld.server.HelloWorldClient <rmi_registry_ip> <rmi_registry_port> <service_name>");
@@ -74,14 +77,65 @@ public class HashMatchMainClient {
 
     private void playService() {
         try {
-            //============ Call HelloWorld remote service ============
-            HashMatchSessionRI sessionRI = this.hashMatchFactoryRI.login("Diogo", "12345");
-            if (sessionRI != null) {
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Sucesseful! ");
+            Scanner input = new Scanner(System.in);
+            String login, password;
+            HashMatchSessionRI sessionRI = null;
+            boolean cycle = true;
+            while (cycle) {
+                System.out.println("Escolha uma opção:\n1 : Login\n2 : Registo\n0 : Sair");
+                switch (input.nextInt()) {
+                    case 0:
+                        cycle = false;
+                        break;
+                    case 1:
+                        System.out.println("Introduza o login:");
+                        login = input.next();
+                        System.out.println("Introduza a password:");
+                        password = input.next();
+                        sessionRI = this.hashMatchFactoryRI.login(login, password);
+                        if (sessionRI != null) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
+                            user = sessionRI.getUser(login,password);
+                            secondMenu(input,sessionRI);
+                        }
+                        break;
+                    case 2:
+                        System.out.println("Introduza o login:");
+                        login = input.next();
+                        System.out.println("Introduza a password:");
+                        password = input.next();
+                        hashMatchFactoryRI.register(login, password);
+                        if (this.hashMatchFactoryRI.register(login, password)) {
+                            sessionRI = this.hashMatchFactoryRI.login(login, password);
+                        }
+                        if (sessionRI != null) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
+                            secondMenu(input,sessionRI);
+                        }
+                        break;
+                }
             }
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "going to finish, bye. ;)");
         } catch (RemoteException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void secondMenu(Scanner input,HashMatchSessionRI sessionRI) throws RemoteException {
+
+        boolean cycle2 = true;
+        while (cycle2) {
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Juntar a Grupo de Trabalho\n0 : Sair");
+            switch (input.nextInt()) {
+                case 0:
+                    cycle2 = false;
+                    break;
+                case 1:
+                    sessionRI.createHashMatchTaskGroup(user,"dasd",new File(""),null);
+                    break;
+                case 2:
+                    sessionRI.listTaskGroups();
+            }
         }
     }
 }
