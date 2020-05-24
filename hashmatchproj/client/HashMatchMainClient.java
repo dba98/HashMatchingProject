@@ -1,9 +1,10 @@
 package ProjetoSD.hashmatchproj.client;
 
 
-import ProjetoSD.hashmatchproj.models.User;
+import ProjetoSD.hashmatchproj.server.User;
 import ProjetoSD.hashmatchproj.server.HashMatchFactoryRI;
 import ProjetoSD.hashmatchproj.server.HashMatchSessionRI;
+import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
 import ProjetoSD.hashmatchproj.util.rmisetup.SetupContextRMI;
 
 import java.io.File;
@@ -122,19 +123,41 @@ public class HashMatchMainClient {
     }
 
     private void secondMenu(Scanner input,HashMatchSessionRI sessionRI) throws RemoteException {
-
-        boolean cycle2 = true;
-        while (cycle2) {
-            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Juntar a Grupo de Trabalho\n0 : Sair");
+        HashMatchTaskGroupRI taskGroupRI;
+        boolean cycle = true;
+        while (cycle) {
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n 3: Juntar a Grupo de Trabalho\n0 : Voltar");
             switch (input.nextInt()) {
                 case 0:
-                    cycle2 = false;
+                    cycle = false;
                     break;
                 case 1:
-                    sessionRI.createHashMatchTaskGroup(user,"dasd",new File(""),null);
+                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user,"SHA-512",new File(""),null);
+                    taskGroupMenu(input,taskGroupRI);
                     break;
                 case 2:
                     sessionRI.listTaskGroups();
+                    break;
+                case 3:
+                    break;
+            }
+        }
+    }
+
+    private void taskGroupMenu(Scanner input,HashMatchTaskGroupRI taskGroupRI){
+        Worker worker;
+        boolean cycle = true;
+        while(cycle){
+            System.out.println("Escolha uma opção:\n 1: Descobrir HashCodes");
+            switch(input.nextInt()){
+                case 1:
+                    worker = new Worker();
+                    taskGroupRI.associateWorker(worker,this.user);
+                    System.out.println(worker.encryptionFormat);
+                    break;
+                case 0:
+                    cycle = false;
+                    break;
             }
         }
     }

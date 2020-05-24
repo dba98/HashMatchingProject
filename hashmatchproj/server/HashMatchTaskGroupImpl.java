@@ -1,7 +1,6 @@
 package ProjetoSD.hashmatchproj.server;
 
-import ProjetoSD.hashmatchproj.models.User;
-import ProjetoSD.hashmatchproj.models.Worker;
+import ProjetoSD.hashmatchproj.client.WorkerRI;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
 
     User owner;
     HashMap<String, User> associatedUsers = new HashMap<>();
-    HashMap<String, Worker> associatedWorkers = new HashMap<>();
+    HashMap<String, WorkerRI> associatedWorkers = new HashMap<>();
     ArrayList<String> hashedCodes;
     File workingFile;
     String hashAlg;
@@ -29,11 +28,11 @@ public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
         }
     }
 
-    public void associateWorker(Thread thread, User user) {
-        if (!associatedWorkers.containsKey(thread.getName().concat(user.getUserName()))) {
-            Worker worker = new Worker(thread, user.getUserName());
-            associatedWorkers.put(worker.name, worker);
-        }
+    public void associateWorker(WorkerRI workerRI, User user) {
+       if(!associatedWorkers.containsKey(user.getUserName()+" "+user.getUserWorkers().size())){
+           associatedWorkers.put(user.getUserName()+" "+user.getUserWorkers().size(),workerRI);
+           workerRI.setData(1L,5000L,hashAlg,hashedCodes);
+       }
     }
 
 

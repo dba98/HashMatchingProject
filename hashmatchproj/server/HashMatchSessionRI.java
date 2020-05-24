@@ -1,5 +1,4 @@
 package ProjetoSD.hashmatchproj.server;
-import ProjetoSD.hashmatchproj.models.User;
 
 import java.io.File;
 import java.rmi.Remote;
@@ -8,6 +7,8 @@ import java.util.ArrayList;
 
 public interface HashMatchSessionRI extends Remote {
     HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, File file, ArrayList<String> hashedCodes) throws RemoteException;
-    User getUser(String userName,String password);
+
+    User getUser(String userName, String password);
+
     void listTaskGroups();
 }

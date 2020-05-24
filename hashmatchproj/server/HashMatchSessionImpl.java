@@ -1,11 +1,9 @@
 package ProjetoSD.hashmatchproj.server;
 
-import ProjetoSD.hashmatchproj.models.User;
-import ProjetoSD.hashmatchproj.models.Worker;
+import ProjetoSD.hashmatchproj.client.Worker;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +13,7 @@ public class HashMatchSessionImpl implements HashMatchSessionRI, Serializable {
     DBMockup dataBase;
     User user;
     ArrayList<Worker> createdWorkers = new ArrayList<>();
+
     HashMap<String,HashMatchTaskGroupRI> taskGroups = new HashMap<>();
     public HashMatchSessionImpl(DBMockup dataBase,User user) {
        this.dataBase = dataBase;

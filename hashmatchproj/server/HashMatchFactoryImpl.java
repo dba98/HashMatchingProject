@@ -1,7 +1,5 @@
 package ProjetoSD.hashmatchproj.server;
 
-import ProjetoSD.hashmatchproj.models.User;
-
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
