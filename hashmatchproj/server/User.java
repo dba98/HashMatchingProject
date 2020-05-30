@@ -1,14 +1,15 @@
 package ProjetoSD.hashmatchproj.server;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class User implements Serializable {
 
     String userName;
     String password;
-    HashMap<String,Thread> userWorkers = new HashMap<>();
-
+    ArrayList<HashMatchTaskGroupImpl> associatedTaskGroup = new ArrayList<>();
+    int nrWorkers;
     public User(String userName, String password){
         this.userName = userName;
         this.password = password;
@@ -30,7 +31,4 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public HashMap<String, Thread> getUserWorkers() {
-        return userWorkers;
-    }
 }

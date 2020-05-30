@@ -12,6 +12,7 @@ import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,7 @@ public class HashMatchMainClient {
      */
     private HashMatchFactoryRI hashMatchFactoryRI;
     User user;
+
     public static void main(String[] args) {
         if (args != null && args.length < 2) {
             System.err.println("usage: java [options] edu.ufp.sd.inf.rmi.edu.ufp.inf.sd.rmi.helloworld.server.HelloWorldClient <rmi_registry_ip> <rmi_registry_port> <service_name>");
@@ -96,8 +98,8 @@ public class HashMatchMainClient {
                         sessionRI = this.hashMatchFactoryRI.login(login, password);
                         if (sessionRI != null) {
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
-                            user = sessionRI.getUser(login,password);
-                            secondMenu(input,sessionRI);
+                            user = sessionRI.getUser(login, password);
+                            secondMenu(input, sessionRI);
                         }
                         break;
                     case 2:
@@ -111,7 +113,7 @@ public class HashMatchMainClient {
                         }
                         if (sessionRI != null) {
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
-                            secondMenu(input,sessionRI);
+                            secondMenu(input, sessionRI);
                         }
                         break;
                 }
@@ -122,38 +124,46 @@ public class HashMatchMainClient {
         }
     }
 
-    private void secondMenu(Scanner input,HashMatchSessionRI sessionRI) throws RemoteException {
+    private void secondMenu(Scanner input, HashMatchSessionRI sessionRI) throws RemoteException {
         HashMatchTaskGroupRI taskGroupRI;
+        ArrayList<String> hashCodes = new ArrayList<>();
+        hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         boolean cycle = true;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n 3: Juntar a Grupo de Trabalho\n0 : Voltar");
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3: Juntar a Grupo de Trabalho\n0 : Voltar");
             switch (input.nextInt()) {
                 case 0:
                     cycle = false;
                     break;
                 case 1:
-                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user,"SHA-512",new File(""),null);
-                    taskGroupMenu(input,taskGroupRI);
+                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user, "SHA-512", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt",hashCodes);
+                    taskGroupMenu(input, taskGroupRI);
                     break;
                 case 2:
                     sessionRI.listTaskGroups();
                     break;
                 case 3:
+                    sessionRI.listTaskGroups();
+                    sessionRI.joinTaskGroup(input.next());
+                case 4:
+                    System.out.println("Escolha uma taskGroup para entrar: ");
                     break;
             }
         }
     }
 
-    private void taskGroupMenu(Scanner input,HashMatchTaskGroupRI taskGroupRI){
+    private void taskGroupMenu(Scanner input, HashMatchTaskGroupRI taskGroupRI) {
         Worker worker;
         boolean cycle = true;
-        while(cycle){
+        while (cycle) {
             System.out.println("Escolha uma opção:\n 1: Descobrir HashCodes");
-            switch(input.nextInt()){
+            switch (input.nextInt()) {
                 case 1:
                     worker = new Worker();
-                    taskGroupRI.associateWorker(worker,this.user);
+                    taskGroupRI.associateWorker(worker, this.user);
                     System.out.println(worker.encryptionFormat);
+                    Thread thread = new Thread(worker);
+                    thread.start();
                     break;
                 case 0:
                     cycle = false;

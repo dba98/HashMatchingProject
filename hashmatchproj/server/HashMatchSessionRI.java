@@ -6,9 +6,13 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public interface HashMatchSessionRI extends Remote {
-    HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, File file, ArrayList<String> hashedCodes) throws RemoteException;
+    HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashedCodes) throws RemoteException;
 
     User getUser(String userName, String password);
 
     void listTaskGroups();
+
+    void joinTaskGroup(String taskGroupName);
+
+    boolean enterTaskGroupMenu(String taskGroupName);
 }

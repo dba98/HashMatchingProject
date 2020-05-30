@@ -12,10 +12,10 @@ public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
     HashMap<String, User> associatedUsers = new HashMap<>();
     HashMap<String, WorkerRI> associatedWorkers = new HashMap<>();
     ArrayList<String> hashedCodes;
-    File workingFile;
+    String workingFile;
     String hashAlg;
 
-    public HashMatchTaskGroupImpl(User owner, File file,String hashAlg,ArrayList<String> hashedCodes) {
+    public HashMatchTaskGroupImpl(User owner, String file,String hashAlg,ArrayList<String> hashedCodes) {
         this.owner = owner;
         this.workingFile = file;
         this.hashAlg = hashAlg;
@@ -29,8 +29,8 @@ public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
     }
 
     public void associateWorker(WorkerRI workerRI, User user) {
-       if(!associatedWorkers.containsKey(user.getUserName()+" "+user.getUserWorkers().size())){
-           associatedWorkers.put(user.getUserName()+" "+user.getUserWorkers().size(),workerRI);
+       if(!associatedWorkers.containsKey(user.getUserName()+" "+user.nrWorkers)){
+           associatedWorkers.put(user.userName+" "+user.nrWorkers++,workerRI);
            workerRI.setData(1L,5000L,hashAlg,hashedCodes);
        }
     }

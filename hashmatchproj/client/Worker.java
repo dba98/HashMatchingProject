@@ -1,27 +1,27 @@
 package ProjetoSD.hashmatchproj.client;
 
+import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Worker implements Runnable,WorkerRI {
 
     public boolean doStop = false;
     public long startLine,delta;
     File file;
-    ArrayList<String> hashCodes;
+    public ArrayList<String> hashCodes;
     String encryptionFormat;
-
-    public Worker(long startLine, long delta, File file, ArrayList<String> hashCodes, String encryptionFormat){
-        this.startLine = startLine;
-        this.delta = delta;
-        this.file = file;
-        this.hashCodes = hashCodes;
-        this.encryptionFormat = encryptionFormat;
-    }
+    HashMatchTaskGroupRI hashMatchTaskGroupRI;
 
     public Worker() {
 
@@ -52,8 +52,9 @@ public class Worker implements Runnable,WorkerRI {
             while (hashtext.length() < 32) {
                 hashtext = "0" + hashtext;
             }
+            System.out.println(hashtext);
             for (String hashCode : hashCodes){
-                if(hashCode.equals(hashtext)){
+                if(hashCode.compareTo(hashtext)==0){
                     return true;
                 }
             }
@@ -68,9 +69,26 @@ public class Worker implements Runnable,WorkerRI {
 
     @Override
     public void run() {
-        while (keepRunnning()) {
             // Implemtentar o algoritmo que vai tratar do ficheiro de texto.
-        }
+            try {
+                URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
+                Scanner myReader = new Scanner(url.openStream());
+                long i = startLine;
+                while(i < delta){
+                    String data = myReader.nextLine();
+                    if(encryptData(data,encryptionFormat)){
+                        System.out.println("Discovered Hash");
+                        break;
+                    }
+                    i++;
+                }
+                myReader.close();
+            } catch (MalformedURLException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
 
