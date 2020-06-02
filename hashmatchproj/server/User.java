@@ -8,8 +8,10 @@ public class User implements Serializable {
 
     String userName;
     String password;
-    ArrayList<HashMatchTaskGroupImpl> associatedTaskGroup = new ArrayList<>();
+    ArrayList<HashMatchTaskGroupImpl> associatedTaskGroups = new ArrayList<>();
+    int credits;
     int nrWorkers;
+
     public User(String userName, String password){
         this.userName = userName;
         this.password = password;

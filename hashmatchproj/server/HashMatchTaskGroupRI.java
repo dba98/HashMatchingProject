@@ -3,9 +3,13 @@ package ProjetoSD.hashmatchproj.server;
 import ProjetoSD.hashmatchproj.client.WorkerRI;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 public interface HashMatchTaskGroupRI extends Remote {
 
-    public void associateUser(User user);
-    public void associateWorker(WorkerRI workerRI, User user);
+    public void associateUser(User user) throws RemoteException;
+    public void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException;
+    public User getOwner() throws RemoteException;
+    public void discoveredHash(String hash, int index) throws RemoteException, InterruptedException;
 }

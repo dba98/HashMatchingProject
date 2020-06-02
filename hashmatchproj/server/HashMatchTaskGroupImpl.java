@@ -2,24 +2,34 @@ package ProjetoSD.hashmatchproj.server;
 
 import ProjetoSD.hashmatchproj.client.WorkerRI;
 
-import java.io.File;
+import java.lang.reflect.Array;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
+public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashMatchTaskGroupRI {
 
     User owner;
     HashMap<String, User> associatedUsers = new HashMap<>();
-    HashMap<String, WorkerRI> associatedWorkers = new HashMap<>();
+    HashMap<String, ArrayList<WorkerRI>> associatedWorkers = new HashMap<>();
+    ArrayList<Block> blocks = new ArrayList<>();
     ArrayList<String> hashedCodes;
-    String workingFile;
-    String hashAlg;
+    String workingFile, hashAlg, name;
+    int availableCredits;
+    private final int delta = 5000;
 
-    public HashMatchTaskGroupImpl(User owner, String file,String hashAlg,ArrayList<String> hashedCodes) {
+
+    public HashMatchTaskGroupImpl(User owner, String file, String hashAlg, ArrayList<String> hashedCodes, String name, int numberOfCredits) throws RemoteException {
+        super();
         this.owner = owner;
         this.workingFile = file;
         this.hashAlg = hashAlg;
         this.hashedCodes = hashedCodes;
+        this.name = name;
+        this.availableCredits = numberOfCredits;
     }
 
     public void associateUser(User user) {
@@ -28,11 +38,44 @@ public class HashMatchTaskGroupImpl implements HashMatchTaskGroupRI {
         }
     }
 
-    public void associateWorker(WorkerRI workerRI, User user) {
-       if(!associatedWorkers.containsKey(user.getUserName()+" "+user.nrWorkers)){
-           associatedWorkers.put(user.userName+" "+user.nrWorkers++,workerRI);
-           workerRI.setData(1L,5000L,hashAlg,hashedCodes);
-       }
+    public void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException {
+        if (!associatedWorkers.containsKey(user.getUserName())) {
+            for (WorkerRI workerRI : workersRI) {
+                Block block = getAvailableBlock();
+                workerRI.setData(hashAlg, hashedCodes, block);
+            }
+            associatedWorkers.put(user.userName, workersRI);
+        }
+    }
+
+    public Block getAvailableBlock() {
+        Block aux;
+        if (blocks.size() > 0) {
+            for (Block block : blocks) {
+                if (!block.isFinished && !block.isOcupied) {
+                    return block;
+                }
+            }
+        }
+        blocks.add(aux = new Block(false, true, blocks.size() * delta, ((blocks.size() + 1) * delta) - 1));
+        return aux;
+    }
+
+    public synchronized void discoveredHash(String hash, int index) throws RemoteException, InterruptedException {
+        hashedCodes.set(index, null);
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word "+hash+" discovered!");
+        for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
+            for (WorkerRI workerRI : workersRI) {
+                workerRI.setStopThread();
+                workerRI.updateHashArray(hashedCodes);
+                workerRI.setStartThread();
+            }
+        }
+    }
+
+    @Override
+    public User getOwner() throws RemoteException {
+        return this.owner;
     }
 
 

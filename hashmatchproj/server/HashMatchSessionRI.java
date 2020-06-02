@@ -1,18 +1,18 @@
 package ProjetoSD.hashmatchproj.server;
-
-import java.io.File;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public interface HashMatchSessionRI extends Remote {
-    HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashedCodes) throws RemoteException;
+    HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashedCodes,String taskGroupName,int numberOfCredits) throws RemoteException;
 
-    User getUser(String userName, String password);
+    User getUser(String userName, String password) throws RemoteException;
 
-    void listTaskGroups();
+    void joinTaskGroup(String taskGroupName) throws RemoteException;
 
-    void joinTaskGroup(String taskGroupName);
+    HashMatchTaskGroupRI enterTaskGroupMenu(String taskGroupName) throws RemoteException;
 
-    boolean enterTaskGroupMenu(String taskGroupName);
+    void addCredits(int numberOfCredits) throws RemoteException;
+
+    ArrayList<String> getTaskGroupsName() throws RemoteException;
 }

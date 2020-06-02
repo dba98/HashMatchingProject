@@ -1,13 +1,10 @@
 package ProjetoSD.hashmatchproj.client;
 
 
-import ProjetoSD.hashmatchproj.server.User;
-import ProjetoSD.hashmatchproj.server.HashMatchFactoryRI;
-import ProjetoSD.hashmatchproj.server.HashMatchSessionRI;
-import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
+import ProjetoSD.hashmatchproj.server.*;
 import ProjetoSD.hashmatchproj.util.rmisetup.SetupContextRMI;
 
-import java.io.File;
+import java.lang.reflect.Array;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -17,7 +14,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HashMatchMainClient {
+public class HashMatchMainClient{
     /**
      * Context for connecting a RMI client to a RMI Servant
      */
@@ -27,6 +24,7 @@ public class HashMatchMainClient {
      */
     private HashMatchFactoryRI hashMatchFactoryRI;
     User user;
+    ArrayList<Thread> createdThreads = new ArrayList<>();
 
     public static void main(String[] args) {
         if (args != null && args.length < 2) {
@@ -89,7 +87,7 @@ public class HashMatchMainClient {
                 switch (input.nextInt()) {
                     case 0:
                         cycle = false;
-                        break;
+                        return;
                     case 1:
                         System.out.println("Introduza o login:");
                         login = input.next();
@@ -100,7 +98,8 @@ public class HashMatchMainClient {
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
                             user = sessionRI.getUser(login, password);
                             secondMenu(input, sessionRI);
-                        }
+                        } else
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Account Already Logged!");
                         break;
                     case 2:
                         System.out.println("Introduza o login:");
@@ -114,56 +113,99 @@ public class HashMatchMainClient {
                         if (sessionRI != null) {
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Login Successeful! ");
                             secondMenu(input, sessionRI);
+                        } else {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Account Already Logged!");
                         }
                         break;
                 }
             }
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "going to finish, bye. ;)");
         } catch (RemoteException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Erro inesperado", ex);
+            playService();
         }
     }
 
     private void secondMenu(Scanner input, HashMatchSessionRI sessionRI) throws RemoteException {
         HashMatchTaskGroupRI taskGroupRI;
         ArrayList<String> hashCodes = new ArrayList<>();
+        String taskGroupName;
+        int credits;
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         boolean cycle = true;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3: Juntar a Grupo de Trabalho\n0 : Voltar");
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n0 : Voltar");
             switch (input.nextInt()) {
                 case 0:
                     cycle = false;
                     break;
                 case 1:
-                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user, "SHA-512", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt",hashCodes);
-                    taskGroupMenu(input, taskGroupRI);
+                    System.out.println("Escolha um nome para o Task Group: \n");
+                    taskGroupName = input.next();
+                    System.out.println("Insira o numero de creditos que pretende adicionar ao Task Group: \n");
+                    credits = input.nextInt();
+                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user, "SHA-512", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt", hashCodes, taskGroupName, credits);
+                    if (taskGroupRI != null)
+                        taskGroupMenu(input, taskGroupRI);
                     break;
                 case 2:
-                    sessionRI.listTaskGroups();
+                    for (String aux : sessionRI.getTaskGroupsName()) {
+                        System.out.println(aux);
+                    }
                     break;
                 case 3:
-                    sessionRI.listTaskGroups();
+                    for (String aux : sessionRI.getTaskGroupsName()) {
+                        System.out.println(aux);
+                    }
+                    System.out.println("Escolha um Task Group:");
                     sessionRI.joinTaskGroup(input.next());
+                    break;
                 case 4:
                     System.out.println("Escolha uma taskGroup para entrar: ");
+                    taskGroupRI = sessionRI.enterTaskGroupMenu(input.next());
+                    if (taskGroupRI != null)
+                        taskGroupMenu(input, taskGroupRI);
                     break;
             }
         }
     }
 
-    private void taskGroupMenu(Scanner input, HashMatchTaskGroupRI taskGroupRI) {
+    private void taskGroupMenu(Scanner input, HashMatchTaskGroupRI taskGroupRI) throws RemoteException {
         Worker worker;
+        int nrOfThreads;
+        ArrayList<WorkerRI> createdWorkers = new ArrayList<>();
         boolean cycle = true;
+        Thread thread;
+        Worker workeraux;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n 1: Descobrir HashCodes");
+            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Task Group");
             switch (input.nextInt()) {
                 case 1:
-                    worker = new Worker();
-                    taskGroupRI.associateWorker(worker, this.user);
-                    System.out.println(worker.encryptionFormat);
-                    Thread thread = new Thread(worker);
-                    thread.start();
+                    System.out.println("Quantas Threads quer criar? (Escolha de acordo com o número de Threads do seu CPU para máximo de eficiencia!)");
+                    nrOfThreads = input.nextInt();
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Saving Threads...");
+                    for (int i = 0; i < nrOfThreads; i++) {
+                        createdWorkers.add(workeraux = new Worker(taskGroupRI));
+                        thread = new Thread((workeraux));
+                        workeraux.thread = thread;
+                        createdThreads.add(thread);
+                    }
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Threads saved successfully!");
+                    taskGroupRI.associateWorkers(createdWorkers, this.user);
+                    int i = 0;
+                    for (Thread threadaux : createdThreads) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting Thread "+i);
+                        threadaux.start();
+                        i++;
+                    }
+
+                    break;
+                case 2:
+
+                    break;
+
+                case 3:
+
                     break;
                 case 0:
                     cycle = false;

@@ -1,58 +1,72 @@
 package ProjetoSD.hashmatchproj.server;
 
-import ProjetoSD.hashmatchproj.client.Worker;
+import ProjetoSD.hashmatchproj.client.WorkerRI;
 
-import java.io.File;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HashMatchSessionImpl implements HashMatchSessionRI, Serializable {
+public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMatchSessionRI {
 
     private DBMockup dataBase;
     private User user;
-    private ArrayList<Worker> createdWorkers = new ArrayList<>();
-    HashMap<String, HashMatchTaskGroupImpl> taskGroups = new HashMap<>();
+    private ArrayList<WorkerRI> createdWorkers = new ArrayList<>();
 
-    public HashMatchSessionImpl(DBMockup dataBase, User user) {
+    public HashMatchSessionImpl(DBMockup dataBase, User user) throws RemoteException {
+        super();
         this.dataBase = dataBase;
         this.user = user;
     }
 
     @Override
-    public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes) throws RemoteException {
-        String aux;
+    public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes, String taskGroupName, int numberOfCredits) throws RemoteException {
         HashMatchTaskGroupImpl hashMatchTaskGroupImpl;
-
-        if (!taskGroups.containsKey(aux = user.getUserName().concat("_").concat(filePath))) {
-            taskGroups.put(aux, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes));
+        if (!dataBase.taskGroups.containsKey(taskGroupName)) {
+            dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits));
             return hashMatchTaskGroupImpl;
-        }else{
+        } else {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "TaskGroup already exists");
         }
         return null;
     }
 
-    public void listTaskGroups() {
-        taskGroups.forEach((key, value) -> System.out.println(key));
+    public ArrayList<String> getTaskGroupsName() throws RemoteException {
+        ArrayList<String> taskGroupNames = new ArrayList<>();
+        for (HashMatchTaskGroupImpl taskGroup : dataBase.taskGroups.values()) {
+            taskGroupNames.add(taskGroup.name);
+        }
+        return taskGroupNames;
     }
 
     @Override
-    public void joinTaskGroup(String taskGroupName) {
-        if (taskGroups.containsKey(taskGroupName)) {
-            if (!taskGroups.get(taskGroupName).owner.userName.equals(this.user.userName)) {
-                taskGroups.get(taskGroupName).associateUser(this.user);
-                this.user.associatedTaskGroup.add(taskGroups.get(taskGroupName));
+    public void joinTaskGroup(String taskGroupName) throws RemoteException {
+        if (dataBase.taskGroups.containsKey(taskGroupName)) {
+            if (!dataBase.taskGroups.get(taskGroupName).associatedUsers.containsKey(this.user.userName)) {
+                dataBase.taskGroups.get(taskGroupName).associateUser(this.user);
+                this.user.associatedTaskGroups.add(dataBase.taskGroups.get(taskGroupName));
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "User "+user.getUserName()+" associado com sucesso ao Task Group "+dataBase.taskGroups.get(taskGroupName).name);
             }
         }
     }
 
     @Override
-    public boolean enterTaskGroupMenu(String taskGroupName) {
-        return taskGroups.containsKey(taskGroupName);
+    public HashMatchTaskGroupRI enterTaskGroupMenu(String taskGroupName) {
+        for (HashMatchTaskGroupImpl taskGroup : user.associatedTaskGroups) {
+            if (taskGroupName.equals(taskGroup.name)) {
+                return taskGroup;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void addCredits(int numberOfCredits) {
+        this.user.credits += numberOfCredits;
     }
 
     public User getUser(String userName, String password) {

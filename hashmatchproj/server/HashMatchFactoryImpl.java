@@ -6,9 +6,9 @@ import java.util.HashMap;
 
 public class HashMatchFactoryImpl extends UnicastRemoteObject implements HashMatchFactoryRI {
 
-    DBMockup dataBase = new DBMockup();
-    HashMap<String, HashMatchSessionRI> sessions = new HashMap<>();
-    HashMap<String, HashMatchTaskGroupRI> taskGroups = new HashMap<>();
+    DBMockup dataBase = DBMockup.getInstance();
+    HashMap<String, HashMatchSessionImpl> sessions = new HashMap<>();
+    // HashMap<String, HashMatchTaskGroupRI> taskGroups = new HashMap<>();
 
     public HashMatchFactoryImpl() throws RemoteException {
         super();
@@ -16,11 +16,13 @@ public class HashMatchFactoryImpl extends UnicastRemoteObject implements HashMat
 
     @Override
     public HashMatchSessionRI login(String userName, String password) throws RemoteException {
+        HashMatchSessionImpl sessionRI;
         if (dataBase.exists(userName, password)) {
             if (!sessions.containsKey(userName)) {
-                sessions.put(userName, new HashMatchSessionImpl(dataBase,dataBase.getUser(userName, password)));
+                sessions.put(userName, sessionRI = new HashMatchSessionImpl(dataBase,dataBase.getUser(userName, password)));
+                this.dataBase.sessions.put(userName,sessionRI);
+                return sessions.get(userName);
             }
-            return sessions.get(userName);
         }
         return null;
     }
