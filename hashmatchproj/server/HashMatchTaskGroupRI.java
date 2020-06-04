@@ -12,4 +12,7 @@ public interface HashMatchTaskGroupRI extends Remote {
     public void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException;
     public User getOwner() throws RemoteException;
     public void discoveredHash(String hash, int index) throws RemoteException, InterruptedException;
+    public ArrayList<String> getHashedCodes() throws RemoteException;
+    public boolean getstate() throws RemoteException;
+    public Block getAvailableBlock() throws RemoteException;
 }

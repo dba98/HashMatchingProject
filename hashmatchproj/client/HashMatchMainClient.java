@@ -131,7 +131,13 @@ public class HashMatchMainClient{
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
+        int N_lines= 63000;
+        /*
+            Temporarimente vamos aceitar 63000
+         */
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
+        hashCodes.add("77b4656300cd63110def4a7557f9313441192f99883675239b196b5dd5fc97cf571119a43ab62647f7ed98f785bc9befabe87b3de8215f4eb1a0d3ebe074d7b5");
+        hashCodes.add("996a3ed651b44b45b8d4a1b1d9208200c881fa95216ebdfda46c0523d6ec3e558848abef08cda373812561d0bdfe964a724d478fb46b305e4bb23fc16d592c36");
         boolean cycle = true;
         while (cycle) {
             System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n0 : Voltar");
@@ -144,7 +150,7 @@ public class HashMatchMainClient{
                     taskGroupName = input.next();
                     System.out.println("Insira o numero de creditos que pretende adicionar ao Task Group: \n");
                     credits = input.nextInt();
-                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user, "SHA-512", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt", hashCodes, taskGroupName, credits);
+                    taskGroupRI = sessionRI.createHashMatchTaskGroup(user, "SHA-512", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt", hashCodes, taskGroupName, credits, N_lines);
                     if (taskGroupRI != null)
                         taskGroupMenu(input, taskGroupRI);
                     break;
