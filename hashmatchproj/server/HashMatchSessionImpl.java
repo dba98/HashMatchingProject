@@ -24,10 +24,10 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
     }
 
     @Override
-    public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes, String taskGroupName, int numberOfCredits, int N_line) throws RemoteException {
+    public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes, String taskGroupName, int numberOfCredits) throws RemoteException {
         HashMatchTaskGroupImpl hashMatchTaskGroupImpl;
         if (!dataBase.taskGroups.containsKey(taskGroupName)) {
-            dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits,N_line));
+            dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits));
             return hashMatchTaskGroupImpl;
         } else {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "TaskGroup already exists");
