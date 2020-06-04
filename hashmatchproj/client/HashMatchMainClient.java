@@ -25,6 +25,7 @@ public class HashMatchMainClient{
     private HashMatchFactoryRI hashMatchFactoryRI;
     User user;
     ArrayList<Thread> createdThreads = new ArrayList<>();
+    ArrayList<Worker> createdWorkers = new ArrayList<>();
 
     public static void main(String[] args) {
         if (args != null && args.length < 2) {
@@ -120,18 +121,18 @@ public class HashMatchMainClient{
                 }
             }
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "going to finish, bye. ;)");
-        } catch (RemoteException ex) {
+        } catch (RemoteException | InterruptedException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Erro inesperado", ex);
             playService();
         }
     }
 
-    private void secondMenu(Scanner input, HashMatchSessionRI sessionRI) throws RemoteException {
+    private void secondMenu(Scanner input, HashMatchSessionRI sessionRI) throws RemoteException, InterruptedException {
         HashMatchTaskGroupRI taskGroupRI;
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
-        int N_lines= 63000;
+        int N_lines= 1000000;
         /*
             Temporarimente vamos aceitar 63000
          */
@@ -176,15 +177,15 @@ public class HashMatchMainClient{
         }
     }
 
-    private void taskGroupMenu(Scanner input, HashMatchTaskGroupRI taskGroupRI) throws RemoteException {
+    private void taskGroupMenu(Scanner input, HashMatchTaskGroupRI taskGroupRI) throws RemoteException, InterruptedException {
         Worker worker;
         int nrOfThreads;
-        ArrayList<WorkerRI> createdWorkers = new ArrayList<>();
+        ArrayList<WorkerRI> createdWorkersRI = new ArrayList<>();
         boolean cycle = true;
         Thread thread;
         Worker workeraux;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Task Group");
+            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Task Group \n 4: Retomar Task Group");
             switch (input.nextInt()) {
                 case 1:
                     System.out.println("Quantas Threads quer criar? (Escolha de acordo com o número de Threads do seu CPU para máximo de eficiencia!)");
@@ -197,7 +198,8 @@ public class HashMatchMainClient{
                         createdThreads.add(thread);
                     }
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Threads saved successfully!");
-                    taskGroupRI.associateWorkers(createdWorkers, this.user);
+                    createdWorkersRI.addAll(createdWorkers);
+                    taskGroupRI.associateWorkers(createdWorkersRI, this.user);
                     int i = 0;
                     for (Thread threadaux : createdThreads) {
                         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting Thread "+i);
@@ -207,11 +209,26 @@ public class HashMatchMainClient{
 
                     break;
                 case 2:
-
+                    if(this.user.getUserName().equals( taskGroupRI.getOwner().getUserName())){
+                        taskGroupRI.stopTaskWork(this.user);
+                    }else{
+                        System.out.println(" Sem permissão" );
+                    }
                     break;
-
                 case 3:
+                    for(Worker worker1 : createdWorkers){
+                        worker1.endThread();
+                    }
+                    createdWorkers.clear();
+                    createdThreads.clear();
+                    taskGroupRI.clearMyWorks(user);
 
+                case 4:
+                    if(this.user.getUserName().equals( taskGroupRI.getOwner().getUserName())){
+                        taskGroupRI.resumeTaskWork(this.user);
+                    }else{
+                        System.out.println(" Sem permissão" );
+                    }
                     break;
                 case 0:
                     cycle = false;

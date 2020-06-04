@@ -29,11 +29,22 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     HashMatchTaskGroupRI hashMatchTaskGroupRI;
     Block block;
     Thread thread;
+    boolean state;
+    boolean cycle;
+    long i = 0;
 
     public Worker(HashMatchTaskGroupRI taskGroupRI) throws RemoteException {
         super();
         this.hashMatchTaskGroupRI = taskGroupRI;
+        this.state = true;
+        this.cycle= true;
     }
+
+    public void endThread() {
+        this.cycle = false;
+
+    }
+
 
     public int encryptData(String input, String encryptionFormat) {
         try {
@@ -76,38 +87,48 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         try {
             int index;
             URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
-
-            while (hashMatchTaskGroupRI.getstate()) {
-                Scanner myReader = new Scanner(url.openStream());
-                block = hashMatchTaskGroupRI.getAvailableBlock();
-                if(block == null){
-                    break;
-                }
-                long i = 0;
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
-                while (i < block.startLine) {
-                    myReader.nextLine();
-                    i++;
-                }
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line " + i + "...");
-                while (i < block.endLine) {
-                    String data = myReader.nextLine();
-                    if ((index = encryptData(data, encryptionFormat)) > -1) {
-                        System.out.println("******* ENCONTEI *********");
-                        hashMatchTaskGroupRI.discoveredHash(data, index);
+            synchronized (this) {
+                while (cycle) {
+                    if(!this.state){
+                        this.wait();
                     }
-                    i++;
-                }
+                    Scanner myReader = new Scanner(url.openStream());
+                    block = hashMatchTaskGroupRI.getAvailableBlock();
+                    if (block == null) {
+                        break;
+                    }
+                    i = 0;
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
+                    while (i < block.startLine) {
+                        myReader.nextLine();
+                        i++;
+                    }
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line " + i + "...");
+                    while (i < block.endLine) {
+                        String data = myReader.nextLine();
+                        if ((index = encryptData(data, encryptionFormat)) > -1) {
+                            System.out.println("******* ENCONTEI *********");
+                            hashMatchTaskGroupRI.discoveredHash(data, index);
+                        }
+                        i++;
+                    }
 
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + i + "...");
-                myReader.close();
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + i + "...");
+                    myReader.close();
+                }
             }
             } catch(MalformedURLException e){
                 System.out.println("An error occurred.");
                 e.printStackTrace();
             } catch(IOException | InterruptedException e){
                 e.printStackTrace();
+                block.startLine= i;
+            try {
+                hashMatchTaskGroupRI.saveBlock(block);
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
             }
+        }
 
 
     }
@@ -136,6 +157,19 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         for(String s: hashCodes){
             System.out.println( s);
         }
+    }
+
+    @Override
+    public void resumeThread() throws RemoteException {
+        synchronized (this) {
+            this.state = true;
+            this.notify();
+        }
+    }
+
+    @Override
+    public void stopThread() throws RemoteException {
+        this.state = false;
     }
 
 

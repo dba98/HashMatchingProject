@@ -53,24 +53,26 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     public Block getAvailableBlock() throws RemoteException {
         Block aux;
-        if(!state){
-            return null;
-        }
-        int  end_of_block=((blocks.size() + 1) * delta) - 1;
+        synchronized (this){
+            if(!state){
+                return null;
+            }
+            int  end_of_block=((blocks.size() + 1) * delta) - 1;
 
-        if (blocks.size() > 0) {
-            for (Block block : blocks) {
-                if (!block.isFinished && !block.isOcupied) {
-                    return block;
+            if (blocks.size() > 0) {
+                for (Block block : blocks) {
+                    if (!block.isFinished && !block.isOcupied) {
+                        return block;
+                    }
                 }
             }
+            if(end_of_block> N_lines){
+                end_of_block= N_lines;
+                this.state= false;
+            }
+            blocks.add(aux = new Block(false, true, blocks.size() * delta, end_of_block));
+            return aux;
         }
-        if(end_of_block> N_lines){
-            end_of_block= N_lines;
-            this.state= false;
-        }
-        blocks.add(aux = new Block(false, true, blocks.size() * delta, end_of_block));
-        return aux;
 
     }
 
@@ -92,11 +94,46 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         return hashedCodes;
     }
 
-
-
     @Override
     public User getOwner() throws RemoteException {
         return this.owner;
+    }
+
+    public void stopTaskWork(User user) throws RemoteException, InterruptedException {
+
+        if(user.getUserName().equals(this.owner.getUserName())){
+            for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
+                for (WorkerRI workerRI : workersRI) {
+                    workerRI.stopThread();
+                }
+            }
+            this.state = false;
+        }
+    }
+
+    public void resumeTaskWork(User user) throws RemoteException{
+        if(user.getUserName().equals(this.owner.getUserName())){
+            for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
+                for (WorkerRI workerRI : workersRI) {
+                    workerRI.resumeThread();
+                }
+            }
+            this.state = true;
+        }
+    }
+
+    @Override
+    public void clearMyWorks(User user) throws RemoteException {
+        associatedWorkers.remove(user.userName);
+    }
+
+    @Override
+    public void saveBlock(Block block) throws RemoteException {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Block save in line: "+block.startLine);
+        int aux = (int) ((block.endLine +1) / delta);
+        blocks.get(aux).startLine = block.startLine;
+        blocks.get(aux).isOcupied= false;
+
     }
 
 

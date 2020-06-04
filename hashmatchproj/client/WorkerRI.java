@@ -12,5 +12,7 @@ public interface WorkerRI extends Remote {
     void setStopThread() throws RemoteException, InterruptedException;
    void setStartThread() throws RemoteException;
    void updateHashArray(ArrayList<String> hashCode) throws RemoteException;
+   void resumeThread() throws RemoteException;
+   void stopThread() throws RemoteException;
 
 }
