@@ -29,6 +29,7 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     HashMatchTaskGroupRI hashMatchTaskGroupRI;
     Block block;
     Thread thread;
+
     public Worker(HashMatchTaskGroupRI taskGroupRI) throws RemoteException {
         super();
         this.hashMatchTaskGroupRI = taskGroupRI;
@@ -75,39 +76,47 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         try {
             int index;
             URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
-            Scanner myReader = new Scanner(url.openStream());
-            long i = 0;
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line...");
-            while (i < block.startLine) {
-                myReader.nextLine();
-                i++;
-            }
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line " + i + "...");
-            while (i < block.endLine) {
-                String data = myReader.nextLine();
-                if ((index = encryptData(data, encryptionFormat)) > -1) {
-                    hashMatchTaskGroupRI.discoveredHash(data, index);
-                }
-                i++;
-            }
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + i + "...");
-            myReader.close();
 
-        } catch (MalformedURLException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+            while (hashMatchTaskGroupRI.getstate()) {
+                Scanner myReader = new Scanner(url.openStream());
+                block = hashMatchTaskGroupRI.getAvailableBlock();
+                if(block == null){
+                    break;
+                }
+                long i = 0;
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
+                while (i < block.startLine) {
+                    myReader.nextLine();
+                    i++;
+                }
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line " + i + "...");
+                while (i < block.endLine) {
+                    String data = myReader.nextLine();
+                    if ((index = encryptData(data, encryptionFormat)) > -1) {
+                        System.out.println("******* ENCONTEI *********");
+                        hashMatchTaskGroupRI.discoveredHash(data, index);
+                    }
+                    i++;
+                }
+
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + i + "...");
+                myReader.close();
+            }
+            } catch(MalformedURLException e){
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            } catch(IOException | InterruptedException e){
+                e.printStackTrace();
+            }
+
 
     }
 
 
     @Override
-    public void setData(String encryptionFormat, ArrayList<String> hashCodes, Block block) throws RemoteException {
+    public void setData(String encryptionFormat, ArrayList<String> hashCodes) throws RemoteException {
         this.encryptionFormat = encryptionFormat;
         this.hashCodes = hashCodes;
-        this.block = block;
     }
 
     @Override
@@ -119,8 +128,15 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
        this.thread.notify();
     }
 
+
     @Override
-    public void updateHashArray(ArrayList<String> hashCodes) throws RemoteException {
-        this.hashCodes = hashCodes;
+    public void updateHashArray(ArrayList<String> hashCode) throws RemoteException {
+        this.hashCodes =hashCode;
+        System.out.println( "MUDANÇA NO ARRAY");
+        for(String s: hashCodes){
+            System.out.println( s);
+        }
     }
+
+
 }

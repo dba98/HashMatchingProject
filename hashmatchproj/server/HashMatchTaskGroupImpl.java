@@ -18,11 +18,13 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     ArrayList<Block> blocks = new ArrayList<>();
     ArrayList<String> hashedCodes;
     String workingFile, hashAlg, name;
+    boolean state;
+    int N_lines;
     int availableCredits;
     private final int delta = 5000;
 
 
-    public HashMatchTaskGroupImpl(User owner, String file, String hashAlg, ArrayList<String> hashedCodes, String name, int numberOfCredits) throws RemoteException {
+    public HashMatchTaskGroupImpl(User owner, String file, String hashAlg, ArrayList<String> hashedCodes, String name, int numberOfCredits, int N_lines) throws RemoteException {
         super();
         this.owner = owner;
         this.workingFile = file;
@@ -30,6 +32,8 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         this.hashedCodes = hashedCodes;
         this.name = name;
         this.availableCredits = numberOfCredits;
+        this.N_lines= N_lines;
+        this.state = true;
     }
 
     public void associateUser(User user) {
@@ -41,15 +45,19 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     public void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException {
         if (!associatedWorkers.containsKey(user.getUserName())) {
             for (WorkerRI workerRI : workersRI) {
-                Block block = getAvailableBlock();
-                workerRI.setData(hashAlg, hashedCodes, block);
+                workerRI.setData(hashAlg, hashedCodes);
             }
             associatedWorkers.put(user.userName, workersRI);
         }
     }
 
-    public Block getAvailableBlock() {
+    public Block getAvailableBlock() throws RemoteException {
         Block aux;
+        if(!state){
+            return null;
+        }
+        int  end_of_block=((blocks.size() + 1) * delta) - 1;
+
         if (blocks.size() > 0) {
             for (Block block : blocks) {
                 if (!block.isFinished && !block.isOcupied) {
@@ -57,8 +65,17 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
                 }
             }
         }
-        blocks.add(aux = new Block(false, true, blocks.size() * delta, ((blocks.size() + 1) * delta) - 1));
+        if(end_of_block> N_lines){
+            end_of_block= N_lines;
+            this.state= false;
+        }
+        blocks.add(aux = new Block(false, true, blocks.size() * delta, end_of_block));
         return aux;
+
+    }
+
+    public boolean getstate() throws RemoteException {
+        return state;
     }
 
     public synchronized void discoveredHash(String hash, int index) throws RemoteException, InterruptedException {
@@ -66,12 +83,16 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word "+hash+" discovered!");
         for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
             for (WorkerRI workerRI : workersRI) {
-                workerRI.setStopThread();
-                workerRI.updateHashArray(hashedCodes);
-                workerRI.setStartThread();
+              workerRI.updateHashArray(hashedCodes);
             }
         }
     }
+
+    public ArrayList<String> getHashedCodes() {
+        return hashedCodes;
+    }
+
+
 
     @Override
     public User getOwner() throws RemoteException {
