@@ -153,18 +153,21 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         this.availableCredits= availableCredits- auxCredits;
         work.addCredits(auxCredits);
         int aux = (int) ((block.endLine +1) / delta)-1;
+        if(aux== -1){
+            aux= 0;
+        }
         blocks.get(aux).isFinished= true;
         blocks.get(aux).isOcupied= false;
     }
 
     private boolean checkMoney(){
-        int cont = 0;
+        int cont = 1;
         for(Block block: blocks){
             if(block.isOcupied){
                 cont++;
             }
         }
-        return availableCredits >= cont * delta + hashedCodes.size() * 10;
+        return availableCredits >= cont * delta + (hashedCodes.size() * 10)*cont;
     }
 
 

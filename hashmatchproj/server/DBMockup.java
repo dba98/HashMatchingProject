@@ -19,6 +19,9 @@ public class DBMockup {
     private DBMockup() {
         users.add(new User("Diogo", "12345"));
         users.add(new User("Ricardo", "12345"));
+        users.get(0).addCredits(10000000);
+        users.get(1).addCredits(50000);
+
     }
 
     public synchronized static DBMockup getInstance() {

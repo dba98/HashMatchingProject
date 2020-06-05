@@ -26,8 +26,13 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
     @Override
     public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes, String taskGroupName, int numberOfCredits, int N_line) throws RemoteException {
         HashMatchTaskGroupImpl hashMatchTaskGroupImpl;
+        if(numberOfCredits > this.user.credits){
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Sem creditos suficientes!");
+            return null;
+        }
         if (!dataBase.taskGroups.containsKey(taskGroupName)) {
             dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits,N_line));
+            remCredits(numberOfCredits);
             return hashMatchTaskGroupImpl;
         } else {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "TaskGroup already exists");
@@ -69,8 +74,13 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
         this.user.credits += numberOfCredits;
     }
 
-    public User getUser(String userName, String password) {
-        return this.dataBase.getUser(userName, password);
+    public void remCredits(int numberOfCredits) {
+        this.user.credits -= numberOfCredits;
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Creditos removidos: "+numberOfCredits+ " agora tem: "+this.user.credits);
+    }
+
+    public User getUser() {
+        return this.user;
     }
 
 }

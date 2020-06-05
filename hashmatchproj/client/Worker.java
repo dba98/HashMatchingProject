@@ -139,7 +139,6 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         }
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread "+ Thread.currentThread().getName() +"acabou! ganhou" + credits);
-        owner.addCredits(credits);
 
     }
 
