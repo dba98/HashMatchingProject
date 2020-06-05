@@ -59,4 +59,13 @@ public class DBMockup {
         return null;
     }
 
+    public User getUser(String userName) {
+        for (User user : this.users) {
+            if (user.getUserName().compareTo(userName) == 0 ) {
+                return user;
+            }
+        }
+        return null;
+    }
+
 }

@@ -10,6 +10,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,8 +25,8 @@ public class HashMatchMainClient{
      */
     private HashMatchFactoryRI hashMatchFactoryRI;
     User user;
-    ArrayList<Thread> createdThreads = new ArrayList<>();
-    ArrayList<Worker> createdWorkers = new ArrayList<>();
+    HashMap<String,ArrayList<Thread>> createdThreads = new HashMap<>();
+    HashMap<String, ArrayList<Worker>> createdWorkers = new HashMap<>();
     HashMatchSessionRI sessionRI = null;
 
     public static void main(String[] args) {
@@ -132,7 +133,7 @@ public class HashMatchMainClient{
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
-        int N_lines= 100;
+        int N_lines= 50000;
 
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         hashCodes.add("77b4656300cd63110def4a7557f9313441192f99883675239b196b5dd5fc97cf571119a43ab62647f7ed98f785bc9befabe87b3de8215f4eb1a0d3ebe074d7b5");
@@ -183,9 +184,12 @@ public class HashMatchMainClient{
         Worker worker;
         int nrOfThreads;
         ArrayList<WorkerRI> createdWorkersRI = new ArrayList<>();
+        ArrayList<Worker> auxArrayWorkers = new ArrayList<>();
+        ArrayList<Thread> auxArrayThreads= new ArrayList<>();
         boolean cycle = true;
         Thread thread;
         Worker workeraux;
+        String nameTaskWork= taskGroupRI.getName();
         while (cycle) {
             System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Workers na TaskWork \n 4: Retomar Task Group");
             switch (input.nextInt()) {
@@ -194,20 +198,26 @@ public class HashMatchMainClient{
                     nrOfThreads = input.nextInt();
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Saving Threads...");
                     for (int i = 0; i < nrOfThreads; i++) {
-                        createdWorkers.add(workeraux = new Worker(taskGroupRI,user));
+                        auxArrayWorkers.add(workeraux = new Worker(taskGroupRI,user));
                         thread = new Thread((workeraux));
                         workeraux.thread = thread;
-                        createdThreads.add(thread);
+                        auxArrayThreads.add(thread);
                     }
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Threads saved successfully!");
-                    createdWorkersRI.addAll(createdWorkers);
-                    taskGroupRI.associateWorkers(createdWorkersRI, this.user);
-                    int i = 0;
-                    for (Thread threadaux : createdThreads) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting Thread "+i);
-                        threadaux.start();
-                        i++;
+                    createdWorkersRI.addAll(auxArrayWorkers);
+                    if(!taskGroupRI.associateWorkers(createdWorkersRI, this.user)){
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Não se aceitam mais Workers, Task Work terminada ");
+                    }else{
+                        createdWorkers.put(nameTaskWork,auxArrayWorkers);
+                        createdThreads.put(nameTaskWork, auxArrayThreads);
+                        int i = 0;
+                        for (Thread threadaux : createdThreads.get(nameTaskWork)) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting Thread "+i);
+                            threadaux.start();
+                            i++;
+                        }
                     }
+
 
                     break;
                 case 2:
@@ -218,12 +228,10 @@ public class HashMatchMainClient{
                     }
                     break;
                 case 3:
-                    for(Worker worker1 : createdWorkers){
+                    for(Worker worker1 : createdWorkers.get(nameTaskWork)){
                         sessionRI.addCredits(worker1.credits);
                         worker1.endThread();
                     }
-                    createdWorkers.clear();
-                    createdThreads.clear();
                     taskGroupRI.clearMyWorks(user);
 
                 case 4:

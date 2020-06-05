@@ -73,6 +73,7 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
 
     @Override
     public void addCredits(int numberOfCredits) {
+
         this.user.credits += numberOfCredits;
     }
 
