@@ -139,7 +139,7 @@ public class HashMatchMainClient{
         hashCodes.add("3ed8f41f9e0fffc26531ca9ac8d4f51c995bab4fae4f7374bc1b76e9456aa60cfb3a073f00a936e7ec7c7ae1bba7457c28f77db380bf0b294f689c0533c0f4d8");
         boolean cycle = true;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n5: Mostrar saldo\n0 : Voltar");
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n5 : Mostrar saldo\n0 : Voltar");
             switch (input.nextInt()) {
                 case 0:
                     cycle = false;

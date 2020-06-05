@@ -32,6 +32,8 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
         }
         if (!dataBase.taskGroups.containsKey(taskGroupName)) {
             dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits,N_line));
+            dataBase.taskGroups.get(taskGroupName).associateUser(this.user);
+            this.user.associatedTaskGroups.add(dataBase.taskGroups.get(taskGroupName));
             remCredits(numberOfCredits);
             return hashMatchTaskGroupImpl;
         } else {
