@@ -1,6 +1,7 @@
 package ProjetoSD.hashmatchproj.server;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,6 +16,7 @@ public class User implements Serializable {
     public User(String userName, String password){
         this.userName = userName;
         this.password = password;
+        this.credits= 0;
     }
 
     public String getUserName() {
@@ -31,6 +33,12 @@ public class User implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void addCredits(int newCredits)  { this.credits = this.credits + newCredits; }
+
+    public void printCredits()  {
+        System.out.println("Saldo na conta: "+credits);
     }
 
 }

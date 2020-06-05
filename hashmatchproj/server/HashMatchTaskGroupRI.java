@@ -11,7 +11,7 @@ public interface HashMatchTaskGroupRI extends Remote {
      void associateUser(User user) throws RemoteException;
      void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException;
      User getOwner() throws RemoteException;
-     void discoveredHash(String hash, int index) throws RemoteException, InterruptedException;
+     void discoveredHash(String hash, int index, WorkerRI worker) throws RemoteException, InterruptedException;
      ArrayList<String> getHashedCodes() throws RemoteException;
      boolean getstate() throws RemoteException;
      Block getAvailableBlock() throws RemoteException;
@@ -19,5 +19,6 @@ public interface HashMatchTaskGroupRI extends Remote {
      void resumeTaskWork(User user) throws RemoteException;
      void clearMyWorks(User user) throws RemoteException;
      void saveBlock(Block block) throws RemoteException;
+     void endBlock(Block block, WorkerRI work) throws RemoteException;
 
 }

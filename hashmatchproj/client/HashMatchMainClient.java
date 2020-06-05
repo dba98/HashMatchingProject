@@ -132,16 +132,14 @@ public class HashMatchMainClient{
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
-        int N_lines= 1000000;
-        /*
-            Temporarimente vamos aceitar 63000
-         */
+        int N_lines= 100000;
+
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         hashCodes.add("77b4656300cd63110def4a7557f9313441192f99883675239b196b5dd5fc97cf571119a43ab62647f7ed98f785bc9befabe87b3de8215f4eb1a0d3ebe074d7b5");
-        hashCodes.add("996a3ed651b44b45b8d4a1b1d9208200c881fa95216ebdfda46c0523d6ec3e558848abef08cda373812561d0bdfe964a724d478fb46b305e4bb23fc16d592c36");
+        hashCodes.add("3ed8f41f9e0fffc26531ca9ac8d4f51c995bab4fae4f7374bc1b76e9456aa60cfb3a073f00a936e7ec7c7ae1bba7457c28f77db380bf0b294f689c0533c0f4d8");
         boolean cycle = true;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n0 : Voltar");
+            System.out.println("Escolha uma opção:\n1 : Criar Grupo de Trabalho\n2 : Listar Grupos de Trabalho\n3 : Juntar a Grupo de Trabalho\n4 : Entrar no Menu de um TaskGroup \n5: Mostrar saldo\n0 : Voltar");
             switch (input.nextInt()) {
                 case 0:
                     cycle = false;
@@ -173,6 +171,9 @@ public class HashMatchMainClient{
                     if (taskGroupRI != null)
                         taskGroupMenu(input, taskGroupRI);
                     break;
+                case 5:
+                    user.printCredits();
+                    break;
             }
         }
     }
@@ -185,14 +186,14 @@ public class HashMatchMainClient{
         Thread thread;
         Worker workeraux;
         while (cycle) {
-            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Task Group \n 4: Retomar Task Group");
+            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Workers na TaskWork \n 4: Retomar Task Group");
             switch (input.nextInt()) {
                 case 1:
                     System.out.println("Quantas Threads quer criar? (Escolha de acordo com o número de Threads do seu CPU para máximo de eficiencia!)");
                     nrOfThreads = input.nextInt();
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Saving Threads...");
                     for (int i = 0; i < nrOfThreads; i++) {
-                        createdWorkers.add(workeraux = new Worker(taskGroupRI));
+                        createdWorkers.add(workeraux = new Worker(taskGroupRI,user));
                         thread = new Thread((workeraux));
                         workeraux.thread = thread;
                         createdThreads.add(thread);

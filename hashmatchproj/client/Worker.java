@@ -2,6 +2,7 @@ package ProjetoSD.hashmatchproj.client;
 
 import ProjetoSD.hashmatchproj.server.Block;
 import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
+import ProjetoSD.hashmatchproj.server.User;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,22 +28,25 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     public ArrayList<String> hashCodes;
     String encryptionFormat;
     HashMatchTaskGroupRI hashMatchTaskGroupRI;
-    Block block;
+    private Block block;
     Thread thread;
     boolean state;
     boolean cycle;
     long i = 0;
+    private User owner;
+    int credits;
 
-    public Worker(HashMatchTaskGroupRI taskGroupRI) throws RemoteException {
+
+    public Worker(HashMatchTaskGroupRI taskGroupRI, User owner) throws RemoteException {
         super();
         this.hashMatchTaskGroupRI = taskGroupRI;
+        this.owner= owner;
         this.state = true;
         this.cycle= true;
     }
 
     public void endThread() {
         this.cycle = false;
-
     }
 
 
@@ -99,21 +103,21 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
                     }
                     i = 0;
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
-                    while (i < block.startLine) {
+                    while (i <block.startLine) {
                         myReader.nextLine();
                         i++;
                     }
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line " + i + "...");
-                    while (i < block.endLine) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line: " + i + "   in Thread: "+ Thread.currentThread().getName());
+                    while (i <=block.endLine) {
                         String data = myReader.nextLine();
                         if ((index = encryptData(data, encryptionFormat)) > -1) {
                             System.out.println("******* ENCONTEI *********");
-                            hashMatchTaskGroupRI.discoveredHash(data, index);
+                            hashMatchTaskGroupRI.discoveredHash(data, index, this);
                         }
                         i++;
                     }
-
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + i + "...");
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i-1) + "   in Thread: "+ Thread.currentThread().getName());
+                    hashMatchTaskGroupRI.endBlock(block,this);
                     myReader.close();
                 }
             }
@@ -130,6 +134,8 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
             }
         }
 
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread "+ Thread.currentThread().getName() +"acabou! ganhou" + credits);
+        owner.addCredits(credits);
 
     }
 
@@ -172,5 +178,9 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         this.state = false;
     }
 
+    @Override
+    public void addCredits(int newCredits)  throws RemoteException {
+        this.credits = this.credits + newCredits;
+    }
 
 }

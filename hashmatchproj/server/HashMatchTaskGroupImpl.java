@@ -22,6 +22,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     int N_lines;
     int availableCredits;
     private final int delta = 5000;
+    private final Object lock = new Object();
 
 
     public HashMatchTaskGroupImpl(User owner, String file, String hashAlg, ArrayList<String> hashedCodes, String name, int numberOfCredits, int N_lines) throws RemoteException {
@@ -53,7 +54,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     public Block getAvailableBlock() throws RemoteException {
         Block aux;
-        synchronized (this){
+        synchronized (lock){
             if(!state){
                 return null;
             }
@@ -80,7 +81,9 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         return state;
     }
 
-    public synchronized void discoveredHash(String hash, int index) throws RemoteException, InterruptedException {
+    @Override
+    public synchronized void discoveredHash(String hash, int index, WorkerRI worker) throws RemoteException, InterruptedException {
+        worker.addCredits(10);
         hashedCodes.set(index, null);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word "+hash+" discovered!");
         for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
@@ -130,10 +133,18 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     @Override
     public void saveBlock(Block block) throws RemoteException {
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Block save in line: "+block.startLine);
-        int aux = (int) ((block.endLine +1) / delta);
+        int aux = (int) ((block.endLine +1) / delta)-1;
         blocks.get(aux).startLine = block.startLine;
         blocks.get(aux).isOcupied= false;
 
+    }
+
+    @Override
+    public void endBlock(Block block, WorkerRI work) throws RemoteException {
+        int auxCredits= (int) ((block.endLine+1)-block.startLine);
+        work.addCredits(auxCredits);
+        int aux = (int) ((block.endLine +1) / delta)-1;
+        blocks.get(aux).isFinished= true;
     }
 
 
