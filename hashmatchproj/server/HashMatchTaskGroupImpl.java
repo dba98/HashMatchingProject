@@ -22,6 +22,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     int N_lines;
     int availableCredits;
     private final int delta = 5000;
+    int nWorkers = 0;
     private final Object lock = new Object();
 
 
@@ -44,6 +45,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     }
 
     public void associateWorkers(ArrayList<WorkerRI> workersRI, User user) throws RemoteException {
+        this.nWorkers= this.nWorkers + workersRI.size();
         if (!associatedWorkers.containsKey(user.getUserName())) {
             for (WorkerRI workerRI : workersRI) {
                 workerRI.setData(hashAlg, hashedCodes);
@@ -56,6 +58,11 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         Block aux;
         synchronized (lock){
             if(!state){
+                return null;
+            }
+            if(!checkMoney()){
+                this.state= false;
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Creditos Insuficientes! ");
                 return null;
             }
             int  end_of_block=((blocks.size() + 1) * delta) - 1;
@@ -83,6 +90,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     @Override
     public synchronized void discoveredHash(String hash, int index, WorkerRI worker) throws RemoteException, InterruptedException {
+        this.availableCredits= availableCredits- 10;
         worker.addCredits(10);
         hashedCodes.set(index, null);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word "+hash+" discovered!");
@@ -142,9 +150,21 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     @Override
     public void endBlock(Block block, WorkerRI work) throws RemoteException {
         int auxCredits= (int) ((block.endLine+1)-block.startLine);
+        this.availableCredits= availableCredits- auxCredits;
         work.addCredits(auxCredits);
         int aux = (int) ((block.endLine +1) / delta)-1;
         blocks.get(aux).isFinished= true;
+        blocks.get(aux).isOcupied= false;
+    }
+
+    private boolean checkMoney(){
+        int cont = 0;
+        for(Block block: blocks){
+            if(block.isOcupied){
+                cont++;
+            }
+        }
+        return availableCredits >= cont * delta + hashedCodes.size() * 10;
     }
 
 

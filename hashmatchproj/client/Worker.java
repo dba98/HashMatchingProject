@@ -45,8 +45,10 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
         this.cycle= true;
     }
 
-    public void endThread() {
+    public void endThread() throws RemoteException {
+
         this.cycle = false;
+        resumeThread();
     }
 
 
@@ -99,25 +101,27 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
                     Scanner myReader = new Scanner(url.openStream());
                     block = hashMatchTaskGroupRI.getAvailableBlock();
                     if (block == null) {
-                        break;
-                    }
-                    i = 0;
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
-                    while (i <block.startLine) {
-                        myReader.nextLine();
-                        i++;
-                    }
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line: " + i + "   in Thread: "+ Thread.currentThread().getName());
-                    while (i <=block.endLine) {
-                        String data = myReader.nextLine();
-                        if ((index = encryptData(data, encryptionFormat)) > -1) {
-                            System.out.println("******* ENCONTEI *********");
-                            hashMatchTaskGroupRI.discoveredHash(data, index, this);
+                        this.wait();
+                    }if(block!=null){
+                        i = 0;
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
+                        while (i <block.startLine) {
+                            myReader.nextLine();
+                            i++;
                         }
-                        i++;
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line: " + i + "   in Thread: "+ Thread.currentThread().getName());
+                        while (i <=block.endLine) {
+                            String data = myReader.nextLine();
+                            if ((index = encryptData(data, encryptionFormat)) > -1) {
+                                System.out.println("******* ENCONTEI *********");
+                                hashMatchTaskGroupRI.discoveredHash(data, index, this);
+                            }
+                            i++;
+
                     }
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i-1) + "   in Thread: "+ Thread.currentThread().getName());
-                    hashMatchTaskGroupRI.endBlock(block,this);
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i-1) + "   in Thread: "+ Thread.currentThread().getName());
+                        hashMatchTaskGroupRI.endBlock(block,this);
+                    }
                     myReader.close();
                 }
             }
