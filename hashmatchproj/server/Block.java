@@ -16,6 +16,5 @@ public class Block implements Serializable {
         this.startLine = startLine;
         this.endLine = endLine;
         this.isLast = isLast;
-
     }
 }

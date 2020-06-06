@@ -12,13 +12,10 @@ public interface WorkerRI extends Remote {
     void endThread() throws RemoteException;
 
     void setData(String encryptionFormat, ArrayList<String> hashCodes) throws RemoteException;
-    void setStopThread() throws RemoteException, InterruptedException;
-   void setStartThread() throws RemoteException;
    void updateHashArray(ArrayList<String> hashCode) throws RemoteException;
    void resumeThread() throws RemoteException;
-   void stopThread() throws RemoteException;
    void addCredits(int newCredits)  throws RemoteException;
    User getUser() throws RemoteException;
-
+    void update() throws RemoteException;
 
 }

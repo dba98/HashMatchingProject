@@ -133,7 +133,7 @@ public class HashMatchMainClient{
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
-        int N_lines= 50000;
+        int N_lines= 100000;
 
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         hashCodes.add("77b4656300cd63110def4a7557f9313441192f99883675239b196b5dd5fc97cf571119a43ab62647f7ed98f785bc9befabe87b3de8215f4eb1a0d3ebe074d7b5");
@@ -217,8 +217,6 @@ public class HashMatchMainClient{
                             i++;
                         }
                     }
-
-
                     break;
                 case 2:
                     if(this.user.getUserName().equals( taskGroupRI.getOwner().getUserName())){

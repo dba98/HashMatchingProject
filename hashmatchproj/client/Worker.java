@@ -2,6 +2,7 @@ package ProjetoSD.hashmatchproj.client;
 
 import ProjetoSD.hashmatchproj.server.Block;
 import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
+import ProjetoSD.hashmatchproj.server.State;
 import ProjetoSD.hashmatchproj.server.User;
 
 import java.io.File;
@@ -23,14 +24,13 @@ import java.util.logging.Logger;
 
 public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
 
-    public boolean doStop = false;
     String filePath;
     public ArrayList<String> hashCodes;
-    String encryptionFormat;
+    String encryptionFormat, threadName;
     HashMatchTaskGroupRI hashMatchTaskGroupRI;
     private Block block;
     Thread thread;
-    boolean state;
+    State myState;
     boolean cycle;
     long i = 0;
     private User owner;
@@ -41,14 +41,13 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     public Worker(HashMatchTaskGroupRI taskGroupRI, User owner) throws RemoteException {
         super();
         this.hashMatchTaskGroupRI = taskGroupRI;
-        this.owner= owner;
-        this.state = true;
-        this.cycle= true;
+        this.owner = owner;
+        this.cycle = true;
+        this.myState = taskGroupRI.getState();
     }
 
     @Override
     public void endThread() throws RemoteException {
-
         this.cycle = false;
         resumeThread();
     }
@@ -93,56 +92,78 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     public void run() {
         // Implemtentar o algoritmo que vai tratar do ficheiro de texto.
         try {
+            threadName = Thread.currentThread().getName();
             int index;
             URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
+            Scanner myReader = new Scanner(url.openStream());
             synchronized (lock) {
                 while (cycle) {
-                    if (!this.state) {
-                        lock.wait();
-                    } else {
-                        Scanner myReader = new Scanner(url.openStream());
-                        block = hashMatchTaskGroupRI.getAvailableBlock();
-                        if (block == null) {
-                            lock.wait();
-                        }else{
-                            i = 0;
-                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
-                            while (i < block.startLine) {
-                                myReader.nextLine();
-                                i++;
-                            }
-                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line: " + i + "   in Thread: " + Thread.currentThread().getName());
-                            while (i <= block.endLine) {
-                                String data = myReader.nextLine();
-                                if ((index = encryptData(data, encryptionFormat)) > -1) {
-                                    System.out.println("******* ENCONTEI *********");
-                                    hashMatchTaskGroupRI.discoveredHash(data, index, this);
-                                }
-                                i++;
-
-                            }
-                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i - 1) + "   in Thread: " + Thread.currentThread().getName());
-                            hashMatchTaskGroupRI.endBlock(block, this);
+                    this.block = hashMatchTaskGroupRI.getAvailableBlock();
+                    if (block == null) {
+                        if (checkState(myState, block))
+                            continue;
+                        else{
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread " + Thread.currentThread().getName() + "acabou! ganhou" + credits);
+                            return;
                         }
-                        myReader.close();
+
                     }
+                    i = 0;
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Searching Starting Line..." + block.startLine);
+                    while (i < block.startLine) {
+                        myReader.nextLine();
+                        i++;
+                    }
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Starting to encrypt from line: " + i + "   in Thread: " + Thread.currentThread().getName());
+                    while (i <= block.endLine) {
+                        if (checkState(myState, block)) {
+                            String data = myReader.nextLine();
+                            if ((index = encryptData(data, encryptionFormat)) > -1) {
+                                System.out.println("******* ENCONTREI *********");
+                                hashMatchTaskGroupRI.discoveredHash(data, index, this);
+                            }
+                            i++;
+                        } else {
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread " + Thread.currentThread().getName() + "acabou! ganhou" + credits);
+                            return;
+                        }
+                    }
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i - 1) + "   in Thread: " + Thread.currentThread().getName());
+                    hashMatchTaskGroupRI.endBlock(block, this);
                 }
+                myReader.close();
             }
-            } catch(MalformedURLException e){
-                System.out.println("An error occurred.");
-                e.printStackTrace();
-            } catch(IOException | InterruptedException e){
-                e.printStackTrace();
-                block.startLine= i;
+        } catch (MalformedURLException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            block.startLine = i;
             try {
                 hashMatchTaskGroupRI.saveBlock(block);
             } catch (RemoteException ex) {
                 ex.printStackTrace();
             }
         }
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread " + Thread.currentThread().getName() + "acabou! ganhou" + credits);
 
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Thread "+ Thread.currentThread().getName() +"acabou! ganhou" + credits);
+    }
 
+    private boolean checkState(State state, Block block) throws RemoteException, InterruptedException {
+        switch (state.info) {
+            case "PAUSE":
+                synchronized (lock) {
+                    this.lock.wait();
+                }
+                return true;
+            case "DELETE":
+                if (block != null){
+                    hashMatchTaskGroupRI.endBlock(block, this);
+                }
+                return false;
+            default:
+                return true;
+        }
     }
 
 
@@ -153,45 +174,35 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
     }
 
     @Override
-    public synchronized void setStopThread() throws RemoteException, InterruptedException {
-        this.thread.wait();
-    }
-
-    public synchronized void setStartThread() throws RemoteException{
-       this.thread.notify();
-    }
-
-
-    @Override
     public void updateHashArray(ArrayList<String> hashCode) throws RemoteException {
-        this.hashCodes =hashCode;
-        System.out.println( "MUDANÇA NO ARRAY");
-        for(String s: hashCodes){
-            System.out.println( s);
+        this.hashCodes = hashCode;
+        System.out.println("MUDANÇA DO ARRAY NO THREAD" + threadName);
+        for (String s : hashCodes) {
+            System.out.println(s);
         }
     }
 
     @Override
     public void resumeThread() throws RemoteException {
         synchronized (lock) {
-            this.state = true;
+            myState = this.hashMatchTaskGroupRI.getState();
             lock.notify();
         }
     }
 
     @Override
-    public void stopThread() throws RemoteException {
-        this.state = false;
-    }
-
-    @Override
-    public void addCredits(int newCredits)  throws RemoteException {
+    public void addCredits(int newCredits) throws RemoteException {
         this.credits = this.credits + newCredits;
     }
 
     @Override
-    public User getUser() throws RemoteException{
+    public User getUser() throws RemoteException {
         return owner;
+    }
+
+    @Override
+    public void update() throws RemoteException {
+        this.myState = hashMatchTaskGroupRI.getState();
     }
 
 }
