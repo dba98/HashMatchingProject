@@ -22,8 +22,8 @@ public class SetupContextRMI {
     private final Class subsystemClass;
     private final String registryHostIP;
     private final int registryHostPort;
-    private final String serviceNames[];
-    private final String serviceUrls[];
+    private final String[] serviceNames;
+    private final String[] serviceUrls;
     private final Logger logger;
 
     /**
@@ -34,7 +34,7 @@ public class SetupContextRMI {
      * @param serviceNames
      * @throws RemoteException
      */
-    public SetupContextRMI(Class subsystemClass, String registryHostIP, String registryHostPort, String serviceNames[]) throws RemoteException {
+    public SetupContextRMI(Class subsystemClass, String registryHostIP, String registryHostPort, String[] serviceNames) throws RemoteException {
         this.logger = Logger.getLogger(subsystemClass.getName());
 
         logger.log(Level.INFO, "setup context for {0}", subsystemClass.getName());
@@ -145,7 +145,7 @@ public class SetupContextRMI {
         //return registry;
     }
 
-    public static void printArgs(String classname, String args[]) {
+    public static void printArgs(String classname, String[] args) {
         for (int i = 0; args != null && i < args.length; i++) {
             //String t = Thread.currentThread().getName();
             //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "args[{0}] = {1}", new Object[]{i, args[i]});

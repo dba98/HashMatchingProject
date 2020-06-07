@@ -1,5 +1,8 @@
 package ProjetoSD.hashmatchproj.server;
 import ProjetoSD.hashmatchproj.client.WorkerRI;
+import ProjetoSD.hashmatchproj.models.Block;
+import ProjetoSD.hashmatchproj.models.User;
+
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -56,7 +59,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
                 for (WorkerRI workerRI : workersRI) {
                     workerRI.setData(hashAlg, hashedCodes);
                 }
-                associatedWorkers.put(user.userName, workersRI);
+                associatedWorkers.put(user.getUserName(), workersRI);
                 return true;
             }
         } else {
@@ -115,7 +118,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         hashedCodesFound.add(hash);
         this.availableCredits = availableCredits - 10;
         worker.addCredits(10);
-        dbMockup.getUser(worker.getUser().userName).addCredits(10);
+        dbMockup.getUser(worker.getUser().getUserName()).addCredits(10);
         hashedCodes.set(index, null);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word " + hash + " discovered!");
         if(hashedCodesFound.size() == hashedCodes.size()){
@@ -162,7 +165,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     @Override
     public void clearMyWorks(User user) throws RemoteException {
-        associatedWorkers.remove(user.userName);
+        associatedWorkers.remove(user.getUserName());
     }
 
     @Override
@@ -179,7 +182,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         int auxCredits = (int) ((block.endLine + 1) - block.startLine);
         this.availableCredits = availableCredits - auxCredits;
         work.addCredits(auxCredits);
-        dbMockup.getUser(work.getUser().userName).addCredits(auxCredits);
+        dbMockup.getUser(work.getUser().getUserName()).addCredits(auxCredits);
         int aux = (int) ((block.endLine + 1) / delta) - 1;
         if (aux == -1) {
             aux = 0;
@@ -195,9 +198,9 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         if (this.owner.getUserName().compareTo(user.getUserName()) == 0) {
             endAllThreads();
             for (User user1 : associatedUsers.values()) {
-                user1.associatedTaskGroups.remove(this);
+                user1.getAssociatedTaskGroups().remove(this);
             }
-            dbMockup.getUser(owner.userName).addCredits(availableCredits);
+            dbMockup.getUser(owner.getUserName()).addCredits(availableCredits);
             this.availableCredits = 0;
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Task Work apagada");
             return true;

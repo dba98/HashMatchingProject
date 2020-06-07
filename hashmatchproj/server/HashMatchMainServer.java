@@ -41,7 +41,7 @@ public class HashMatchMainServer {
     /**
      * @param args
      */
-    public HashMatchMainServer(String args[]) {
+    public HashMatchMainServer(String[] args) {
         try {
             //============ List and Set args ============
             SetupContextRMI.printArgs(this.getClass().getName(), args);

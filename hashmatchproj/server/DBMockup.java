@@ -1,7 +1,11 @@
 package ProjetoSD.hashmatchproj.server;
 
+import ProjetoSD.hashmatchproj.models.User;
+
 import java.io.File;
-import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -17,8 +21,8 @@ public class DBMockup {
     HashMap<String, HashMatchSessionImpl> sessions = new HashMap<>();
 
     private DBMockup() {
-        users.add(new User("Diogo", "12345"));
-        users.add(new User("Ricardo", "12345"));
+        users.add(new User("Diogo", encryptData("12345","SHA-512")));
+        users.add(new User("Ricardo", encryptData("12345","SHA-512")));
         users.get(0).addCredits(10000000);
         users.get(1).addCredits(50000);
 
@@ -32,7 +36,7 @@ public class DBMockup {
 
     public boolean exists(String userName, String password) {
         for (User user : this.users) {
-            if (user.getUserName().compareTo(userName) == 0 && user.getPassword().compareTo(password) == 0) {
+            if (user.getUserName().compareTo(userName) == 0 && user.getPassword().compareTo(encryptData(password,"SHA-512")) == 0) {
                 return true;
             }
         }
@@ -52,7 +56,7 @@ public class DBMockup {
 
     public User getUser(String userName, String password) {
         for (User user : this.users) {
-            if (user.getUserName().compareTo(userName) == 0 && user.getPassword().compareTo(password) == 0) {
+            if (user.getUserName().compareTo(userName) == 0 && user.getPassword().compareTo(encryptData(password,"SHA-512")) == 0) {
                 return user;
             }
         }
@@ -67,5 +71,28 @@ public class DBMockup {
         }
         return null;
     }
-
+    public String encryptData(String input, String encryptionFormat) {
+        try {
+            // getInstance() method is called with algorithm SHA-512
+            MessageDigest md = MessageDigest.getInstance(encryptionFormat);
+            // digest() method is called
+            // to calculate message digest of the input string
+            // returned as array of byte
+            byte[] messageDigest = md.digest(input.getBytes());
+            // Convert byte array into signum representation
+            BigInteger no = new BigInteger(1, messageDigest);
+            // Convert message digest into hex value
+            String hashtext = no.toString(16);
+            // Add preceding 0s to make it 32 bit
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            // return the HashText
+            return hashtext;
+        }
+        // For specifying wrong message digest algorithms
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

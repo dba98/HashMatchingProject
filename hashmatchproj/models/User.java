@@ -1,22 +1,37 @@
-package ProjetoSD.hashmatchproj.server;
+package ProjetoSD.hashmatchproj.models;
+
+import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupImpl;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class User implements Serializable {
 
-    String userName;
-    String password;
-    ArrayList<HashMatchTaskGroupImpl> associatedTaskGroups = new ArrayList<>();
-    int credits;
-    int nrWorkers;
+    private String userName;
+    private String password;
+    private ArrayList<HashMatchTaskGroupImpl> associatedTaskGroups = new ArrayList<>();
+    private int credits;
 
     public User(String userName, String password){
         this.userName = userName;
         this.password = password;
         this.credits= 0;
+    }
+
+    public ArrayList<HashMatchTaskGroupImpl> getAssociatedTaskGroups() {
+        return associatedTaskGroups;
+    }
+
+    public void setAssociatedTaskGroups(ArrayList<HashMatchTaskGroupImpl> associatedTaskGroups) {
+        this.associatedTaskGroups = associatedTaskGroups;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
     }
 
     public String getUserName() {

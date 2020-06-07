@@ -1,6 +1,8 @@
 package ProjetoSD.hashmatchproj.server;
 
 import ProjetoSD.hashmatchproj.client.WorkerRI;
+import ProjetoSD.hashmatchproj.models.Block;
+import ProjetoSD.hashmatchproj.models.User;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

@@ -1,13 +1,10 @@
 package ProjetoSD.hashmatchproj.server;
 
 import ProjetoSD.hashmatchproj.client.WorkerRI;
-
-import java.io.Serializable;
-import java.lang.reflect.Array;
+import ProjetoSD.hashmatchproj.models.User;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,14 +23,14 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
     @Override
     public HashMatchTaskGroupRI createHashMatchTaskGroup(User user, String hashAlg, String filePath, ArrayList<String> hashCodes, String taskGroupName, int numberOfCredits, int N_line) throws RemoteException {
         HashMatchTaskGroupImpl hashMatchTaskGroupImpl;
-        if(numberOfCredits > this.user.credits){
+        if(numberOfCredits > this.user.getCredits()){
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Sem creditos suficientes!");
             return null;
         }
         if (!dataBase.taskGroups.containsKey(taskGroupName)) {
             dataBase.saveTaskGroup(taskGroupName, hashMatchTaskGroupImpl = new HashMatchTaskGroupImpl(user, filePath, hashAlg, hashCodes, taskGroupName, numberOfCredits,N_line));
             dataBase.taskGroups.get(taskGroupName).associateUser(this.user);
-            this.user.associatedTaskGroups.add(dataBase.taskGroups.get(taskGroupName));
+            this.user.getAssociatedTaskGroups().add(dataBase.taskGroups.get(taskGroupName));
             remCredits(numberOfCredits);
             return hashMatchTaskGroupImpl;
         } else {
@@ -53,9 +50,9 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
     @Override
     public void joinTaskGroup(String taskGroupName) throws RemoteException {
         if (dataBase.taskGroups.containsKey(taskGroupName)) {
-            if (!dataBase.taskGroups.get(taskGroupName).associatedUsers.containsKey(this.user.userName)) {
+            if (!dataBase.taskGroups.get(taskGroupName).associatedUsers.containsKey(this.user.getUserName())) {
                 dataBase.taskGroups.get(taskGroupName).associateUser(this.user);
-                this.user.associatedTaskGroups.add(dataBase.taskGroups.get(taskGroupName));
+                this.user.getAssociatedTaskGroups().add(dataBase.taskGroups.get(taskGroupName));
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "User "+user.getUserName()+" associado com sucesso ao Task Group "+dataBase.taskGroups.get(taskGroupName).name);
             }
         }
@@ -63,7 +60,7 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
 
     @Override
     public HashMatchTaskGroupRI enterTaskGroupMenu(String taskGroupName) {
-        for (HashMatchTaskGroupImpl taskGroup : user.associatedTaskGroups) {
+        for (HashMatchTaskGroupImpl taskGroup : user.getAssociatedTaskGroups()) {
             if (taskGroupName.equals(taskGroup.name)) {
                 return taskGroup;
             }
@@ -73,14 +70,14 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
 
     @Override
     public void addCredits(int numberOfCredits) {
-
-        this.user.credits += numberOfCredits;
+        int aux = this.user.getCredits();
+        this.user.setCredits(aux += numberOfCredits);
     }
 
     @Override
     public boolean endTaskWork(User user, String taskGroupName) throws RemoteException {
         boolean aux;
-        for (HashMatchTaskGroupImpl taskGroup : this.user.associatedTaskGroups) {
+        for (HashMatchTaskGroupImpl taskGroup : this.user.getAssociatedTaskGroups()) {
             if (taskGroupName.compareTo(taskGroup.getName()) == 0) {
                if(taskGroup.owner.getUserName().compareTo(user.getUserName()) == 0){
                    if(aux= taskGroup.endTaskWork(user)){
@@ -99,8 +96,9 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
 }
 
     public void remCredits(int numberOfCredits) {
-        this.user.credits -= numberOfCredits;
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Creditos removidos: "+numberOfCredits+ " agora tem: "+this.user.credits);
+        int aux = this.user.getCredits();
+        this.user.setCredits(aux -= numberOfCredits);
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Creditos removidos: "+numberOfCredits+ " agora tem: "+this.user.getCredits());
     }
 
     public User getUser() {

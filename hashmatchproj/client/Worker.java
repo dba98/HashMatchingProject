@@ -1,15 +1,11 @@
 package ProjetoSD.hashmatchproj.client;
 
-import ProjetoSD.hashmatchproj.server.Block;
+import ProjetoSD.hashmatchproj.models.Block;
 import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
 import ProjetoSD.hashmatchproj.server.State;
-import ProjetoSD.hashmatchproj.server.User;
+import ProjetoSD.hashmatchproj.models.User;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;

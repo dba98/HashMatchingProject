@@ -94,7 +94,7 @@ public class ThreadPool {
                             Logger.getLogger(ThreadPool.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-                    r = (Runnable) listRunnableThreads.removeFirst();
+                    r = listRunnableThreads.removeFirst();
                 }
 
                 // Catch RuntimeException to avoid pool leaks

@@ -1,10 +1,10 @@
 package ProjetoSD.hashmatchproj.client;
-
-
-import ProjetoSD.hashmatchproj.server.*;
+import ProjetoSD.hashmatchproj.server.HashMatchFactoryRI;
+import ProjetoSD.hashmatchproj.server.HashMatchSessionRI;
+import ProjetoSD.hashmatchproj.server.HashMatchTaskGroupRI;
+import ProjetoSD.hashmatchproj.models.User;
 import ProjetoSD.hashmatchproj.util.rmisetup.SetupContextRMI;
 
-import java.lang.reflect.Array;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -43,7 +43,7 @@ public class HashMatchMainClient{
         }
     }
 
-    public HashMatchMainClient(String args[]) {
+    public HashMatchMainClient(String[] args) {
         try {
             //List ans set args
             SetupContextRMI.printArgs(this.getClass().getName(), args);

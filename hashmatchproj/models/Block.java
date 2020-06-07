@@ -1,4 +1,4 @@
-package ProjetoSD.hashmatchproj.server;
+package ProjetoSD.hashmatchproj.models;
 
 import java.io.Serializable;
 
