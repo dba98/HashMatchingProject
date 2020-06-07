@@ -77,6 +77,27 @@ public class HashMatchSessionImpl extends UnicastRemoteObject implements HashMat
         this.user.credits += numberOfCredits;
     }
 
+    @Override
+    public boolean endTaskWork(User user, String taskGroupName) throws RemoteException {
+        boolean aux;
+        for (HashMatchTaskGroupImpl taskGroup : this.user.associatedTaskGroups) {
+            if (taskGroupName.compareTo(taskGroup.getName()) == 0) {
+               if(taskGroup.owner.getUserName().compareTo(user.getUserName()) == 0){
+                   if(aux= taskGroup.endTaskWork(user)){
+                       dataBase.taskGroups.remove(taskGroupName);
+                       Logger.getLogger(this.getClass().getName()).log(Level.INFO, "TaskWork Apagada com sucesso!");
+                   }else {
+                       Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Erro apagar TaskWork!");
+                   }
+
+                   return aux;
+               }
+            }
+        }
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Não tem permissões!");
+        return false;
+}
+
     public void remCredits(int numberOfCredits) {
         this.user.credits -= numberOfCredits;
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Creditos removidos: "+numberOfCredits+ " agora tem: "+this.user.credits);

@@ -133,7 +133,7 @@ public class HashMatchMainClient{
         ArrayList<String> hashCodes = new ArrayList<>();
         String taskGroupName;
         int credits;
-        int N_lines= 100000;
+        int N_lines= 1300000;
 
         hashCodes.add("31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99");
         hashCodes.add("77b4656300cd63110def4a7557f9313441192f99883675239b196b5dd5fc97cf571119a43ab62647f7ed98f785bc9befabe87b3de8215f4eb1a0d3ebe074d7b5");
@@ -191,7 +191,7 @@ public class HashMatchMainClient{
         Worker workeraux;
         String nameTaskWork= taskGroupRI.getName();
         while (cycle) {
-            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Workers na TaskWork \n 4: Retomar Task Group");
+            System.out.println("Escolha uma opção:\n 1: Descobrir Palavras-Chave\n 2: Parar Task Group \n 3: Destruir Workers na TaskWork \n 4: Retomar Task Group\n 5: Apagar TaskWork\n6: Mostrar Palavras encontradas");
             switch (input.nextInt()) {
                 case 1:
                     System.out.println("Quantas Threads quer criar? (Escolha de acordo com o número de Threads do seu CPU para máximo de eficiencia!)");
@@ -238,6 +238,23 @@ public class HashMatchMainClient{
                     }else{
                         System.out.println(" Sem permissão" );
                     }
+                    break;
+                case 5:
+                    if(sessionRI.endTaskWork(user,nameTaskWork)){
+                        System.out.println(" TaskWork Apagada" );
+                    }else{
+                        System.out.println(" Sem permissão" );
+                    }
+                    break;
+                case 6:
+                      ArrayList<String> aux= taskGroupRI.getWordsFound(user);
+                      if(aux != null){
+                          for(String string : aux){
+                              System.out.println("Palavra: "+string);
+                          }
+                      }else{
+                          System.out.println(" Sem permissão" );
+                      }
                     break;
                 case 0:
                     cycle = false;

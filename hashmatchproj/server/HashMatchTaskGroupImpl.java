@@ -21,6 +21,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     int availableCredits;
     private final int delta = 5000;
     int nWorkers = 0;
+    ArrayList<String> hashedCodesFound = new ArrayList<>();
     private final Object lock = new Object();
     DBMockup dbMockup = DBMockup.getInstance();
 
@@ -111,11 +112,16 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     @Override
     public synchronized void discoveredHash(String hash, int index, WorkerRI worker) throws RemoteException, InterruptedException {
+        hashedCodesFound.add(hash);
         this.availableCredits = availableCredits - 10;
         worker.addCredits(10);
         dbMockup.getUser(worker.getUser().userName).addCredits(10);
         hashedCodes.set(index, null);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word " + hash + " discovered!");
+        if(hashedCodesFound.size() == hashedCodes.size()){
+            this.taskGroupState.info = "DELETE";
+            notifyAllWorkers();
+        }
         for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
             for (WorkerRI workerRI : workersRI) {
                 workerRI.updateHashArray(hashedCodes);
@@ -178,21 +184,20 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         if (aux == -1) {
             aux = 0;
         }
-        blocks.remove(aux);
-
+        blocks.get(aux).isOcupied= false;
+        blocks.get(aux).isFinished= true;
         if (block.isLast) {
             endAllThreads();
         }
     }
 
-    @Override
     public boolean endTaskWork(User user) throws RemoteException {
         if (this.owner.getUserName().compareTo(user.getUserName()) == 0) {
             endAllThreads();
             for (User user1 : associatedUsers.values()) {
                 user1.associatedTaskGroups.remove(this);
             }
-            this.owner.addCredits(availableCredits);
+            dbMockup.getUser(owner.userName).addCredits(availableCredits);
             this.availableCredits = 0;
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Task Work apagada");
             return true;
@@ -206,6 +211,16 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
     public String getName() throws RemoteException {
         return this.name;
     }
+
+    @Override
+    public ArrayList<String> getWordsFound(User user) throws RemoteException {
+        if(user.getUserName().compareTo(owner.getUserName())== 0){
+           return hashedCodesFound;
+        }else {
+            return null;
+        }
+    }
+
 
     private boolean checkMoney() {
         int cont = 1;
@@ -221,11 +236,8 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Encerrar todas as threads da Taskwork ");
         this.taskGroupState.info = "DELETE";
         notifyAllWorkers();
-        for (ArrayList<WorkerRI> workersRI : associatedWorkers.values()) {
-            for (WorkerRI workerRI : workersRI) {
-                workerRI.endThread();
-            }
-        }
     }
+
+
 
 }

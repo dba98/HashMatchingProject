@@ -14,6 +14,8 @@ public interface HashMatchSessionRI extends Remote {
 
     void addCredits(int numberOfCredits) throws RemoteException;
 
+    boolean endTaskWork(User user, String taskGroupName) throws RemoteException;
+
 
     ArrayList<String> getTaskGroupsName() throws RemoteException;
 }

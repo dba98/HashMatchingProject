@@ -95,9 +95,10 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
             threadName = Thread.currentThread().getName();
             int index;
             URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
-            Scanner myReader = new Scanner(url.openStream());
+
             synchronized (lock) {
                 while (cycle) {
+                    Scanner myReader = new Scanner(url.openStream());
                     this.block = hashMatchTaskGroupRI.getAvailableBlock();
                     if (block == null) {
                         if (checkState(myState, block))
@@ -130,8 +131,8 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
                     }
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Ending on line" + (i - 1) + "   in Thread: " + Thread.currentThread().getName());
                     hashMatchTaskGroupRI.endBlock(block, this);
+                    myReader.close();
                 }
-                myReader.close();
             }
         } catch (MalformedURLException e) {
             System.out.println("An error occurred.");

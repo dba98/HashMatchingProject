@@ -20,7 +20,7 @@ public interface HashMatchTaskGroupRI extends Remote {
      void clearMyWorks(User user) throws RemoteException;
      void saveBlock(Block block) throws RemoteException;
      void endBlock(Block block, WorkerRI work) throws RemoteException;
-     boolean endTaskWork(User user) throws RemoteException;
      String getName() throws RemoteException;
+     ArrayList<String> getWordsFound(User user) throws RemoteException;
 
 }
