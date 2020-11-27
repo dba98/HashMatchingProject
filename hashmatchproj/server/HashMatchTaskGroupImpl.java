@@ -1,4 +1,5 @@
 package ProjetoSD.hashmatchproj.server;
+
 import ProjetoSD.hashmatchproj.client.WorkerRI;
 import ProjetoSD.hashmatchproj.models.Block;
 import ProjetoSD.hashmatchproj.models.User;
@@ -121,7 +122,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         dbMockup.getUser(worker.getUser().getUserName()).addCredits(10);
         hashedCodes.set(index, null);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Hash of word " + hash + " discovered!");
-        if(hashedCodesFound.size() == hashedCodes.size()){
+        if (hashedCodesFound.size() == hashedCodes.size()) {
             this.taskGroupState.info = "DELETE";
             notifyAllWorkers();
         }
@@ -148,6 +149,7 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         }
 
     }
+
     public void resumeTaskWork(User user) throws RemoteException {
         if (!isFinished) {
             if (user.getUserName().equals(this.owner.getUserName())) {
@@ -187,8 +189,8 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         if (aux == -1) {
             aux = 0;
         }
-        blocks.get(aux).isOcupied= false;
-        blocks.get(aux).isFinished= true;
+        blocks.get(aux).isOcupied = false;
+        blocks.get(aux).isFinished = true;
         if (block.isLast) {
             endAllThreads();
         }
@@ -217,9 +219,9 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
 
     @Override
     public ArrayList<String> getWordsFound(User user) throws RemoteException {
-        if(user.getUserName().compareTo(owner.getUserName())== 0){
-           return hashedCodesFound;
-        }else {
+        if (user.getUserName().compareTo(owner.getUserName()) == 0) {
+            return hashedCodesFound;
+        } else {
             return null;
         }
     }
@@ -240,7 +242,4 @@ public class HashMatchTaskGroupImpl extends UnicastRemoteObject implements HashM
         this.taskGroupState.info = "DELETE";
         notifyAllWorkers();
     }
-
-
-
 }

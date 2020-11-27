@@ -24,5 +24,4 @@ public interface HashMatchTaskGroupRI extends Remote {
      void endBlock(Block block, WorkerRI work) throws RemoteException;
      String getName() throws RemoteException;
      ArrayList<String> getWordsFound(User user) throws RemoteException;
-
 }

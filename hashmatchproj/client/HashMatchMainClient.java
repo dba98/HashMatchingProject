@@ -219,7 +219,7 @@ public class HashMatchMainClient{
                     }
                     break;
                 case 2:
-                    if(this.user.getUserName().equals( taskGroupRI.getOwner().getUserName())){
+                    if(this.user.getUserName().equals(taskGroupRI.getOwner().getUserName())){
                         taskGroupRI.stopTaskWork(this.user);
                     }else{
                         System.out.println(" Sem permissão" );

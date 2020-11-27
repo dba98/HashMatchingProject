@@ -23,8 +23,10 @@ public class DBMockup {
     private DBMockup() {
         users.add(new User("Diogo", encryptData("12345","SHA-512")));
         users.add(new User("Ricardo", encryptData("12345","SHA-512")));
+        users.add(new User("Hugo", encryptData("12345","SHA-512")));
         users.get(0).addCredits(10000000);
         users.get(1).addCredits(50000);
+        users.get(2).addCredits(100000);
 
     }
 
@@ -45,7 +47,7 @@ public class DBMockup {
 
     public void register(String userName, String password) {
         if (!exists(userName, password)) {
-            users.add(new User(userName, password));
+            users.add(new User(userName, encryptData(password,"SHA-512")));
         }
     }
 

@@ -91,7 +91,6 @@ public class Worker extends UnicastRemoteObject implements Runnable, WorkerRI {
             threadName = Thread.currentThread().getName();
             int index;
             URL url = new URL("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkc0de.txt");
-
             synchronized (lock) {
                 while (cycle) {
                     Scanner myReader = new Scanner(url.openStream());
